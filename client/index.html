@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta
+      name="description"
+      content="ShopWave — considered electronics, fashion and home goods, delivered across India."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>ShopWave — Modern commerce</title>
+
+    <!--
+      Runs before first paint so a dark-mode visitor never sees a white flash while the
+      bundle loads. Deliberately inline, dependency-free and duplicated from src/lib/theme.ts
+      (which is the source of truth for the storage key) — a module import would be too late.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('shopwave:theme');
+          var mode = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+          var dark =
+            mode === 'dark' ||
+            (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+          document.documentElement.classList.toggle('dark', dark);
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+          document
+            .querySelector('meta[name="theme-color"]')
+            .setAttribute('content', dark ? '#090d18' : '#4f46e5');
+        } catch (error) {
+          /* Storage blocked — fall through to the light default. */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

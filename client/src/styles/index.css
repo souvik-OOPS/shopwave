@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /*
+   * Light theme — the source of truth for every themed colour. Values are `R G B`
+   * triplets (not hex) so Tailwind's opacity modifiers keep working: `bg-surface/80`.
+   * `ink` is Tailwind's slate ramp, `brand` is indigo.
+   */
+  :root {
+    --header-height: 4rem;
+
+    --color-canvas: 255 255 255;
+    --color-surface: 255 255 255;
+    --color-surface-raised: 255 255 255;
+
+    --color-ink-50: 248 250 252;
+    --color-ink-100: 241 245 249;
+    --color-ink-200: 226 232 240;
+    --color-ink-300: 203 213 225;
+    --color-ink-400: 148 163 184;
+    --color-ink-500: 100 116 139;
+    --color-ink-600: 71 85 105;
+    --color-ink-700: 51 65 85;
+    --color-ink-800: 30 41 59;
+    --color-ink-900: 15 23 42;
+    --color-ink-950: 2 6 23;
+
+    --color-brand-50: 238 242 255;
+    --color-brand-100: 224 231 255;
+    --color-brand-200: 199 210 254;
+    --color-brand-300: 165 180 252;
+    --color-brand-400: 129 140 248;
+    --color-brand-500: 99 102 241;
+    --color-brand-600: 79 70 229;
+    --color-brand-700: 67 56 202;
+    --color-brand-800: 55 48 163;
+    --color-brand-900: 49 46 129;
+    --color-brand-950: 30 27 75;
+
+    --color-success-50: 236 253 245;
+    --color-success-500: 16 185 129;
+    --color-success-600: 5 150 105;
+    --color-success-700: 4 120 87;
+
+    --color-warning-50: 255 251 235;
+    --color-warning-500: 245 158 11;
+    --color-warning-600: 217 119 6;
+    --color-warning-700: 180 83 9;
+    --color-warning-800: 146 64 14;
+
+    --color-danger-50: 254 242 242;
+    --color-danger-500: 239 68 68;
+    --color-danger-600: 220 38 38;
+    --color-danger-700: 185 28 28;
+    --color-danger-800: 153 27 27;
+
+    --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06);
+    --shadow-card-hover: 0 8px 24px -6px rgb(15 23 42 / 0.12), 0 2px 6px -2px rgb(15 23 42 / 0.06);
+    --shadow-popover: 0 12px 32px -8px rgb(15 23 42 / 0.18), 0 4px 8px -4px rgb(15 23 42 / 0.08);
+
+    --shimmer-highlight: 255 255 255;
+    --shimmer-opacity: 0.6;
+
+    color-scheme: light;
+  }
+
+  /*
+   * Dark theme. The neutral ramp is *inverted by role*, not mirrored literally:
+   * `text-ink-900` stays "primary text" and becomes near-white, `border-ink-200` stays
+   * "hairline border" and becomes a light-on-dark hairline. That is what lets ~700
+   * existing utility classes flip without being rewritten.
+   *
+   * The accent ramp is only partly inverted. 400–600 stay saturated so `bg-brand-600`
+   * keeps carrying white text (4.9:1), while 700–950 lighten so `text-brand-700` reads
+   * on a dark surface, and 50–200 darken so `bg-brand-50` chips stop glaring.
+   */
+  .dark {
+    --color-canvas: 9 13 24;
+    --color-surface: 17 24 39;
+    --color-surface-raised: 24 32 49;
+
+    --color-ink-50: 24 33 51;
+    --color-ink-100: 31 41 61;
+    --color-ink-200: 42 54 76;
+    --color-ink-300: 58 72 97;
+    --color-ink-400: 124 138 163;
+    --color-ink-500: 154 167 189;
+    --color-ink-600: 180 192 212;
+    --color-ink-700: 203 213 229;
+    --color-ink-800: 223 230 240;
+    --color-ink-900: 241 245 249;
+    --color-ink-950: 255 255 255;
+
+    --color-brand-50: 30 27 75;
+    --color-brand-100: 39 34 100;
+    --color-brand-200: 49 44 125;
+    --color-brand-300: 79 70 229;
+    --color-brand-400: 99 102 241;
+    --color-brand-500: 129 140 248;
+    --color-brand-600: 99 102 241;
+    --color-brand-700: 165 180 252;
+    --color-brand-800: 199 210 254;
+    --color-brand-900: 224 231 255;
+    --color-brand-950: 238 242 255;
+
+    /* Status colours follow the same rule: -50 becomes a deep tint, -600/-700 lighten. */
+    --color-success-50: 6 46 36;
+    --color-success-500: 16 185 129;
+    --color-success-600: 52 211 153;
+    --color-success-700: 110 231 183;
+
+    --color-warning-50: 56 34 6;
+    --color-warning-500: 245 158 11;
+    --color-warning-600: 251 191 36;
+    --color-warning-700: 253 211 106;
+    --color-warning-800: 254 226 155;
+
+    --color-danger-50: 60 18 20;
+    --color-danger-500: 239 68 68;
+    --color-danger-600: 248 113 113;
+    --color-danger-700: 252 165 165;
+    --color-danger-800: 254 202 202;
+
+    /* Black shadows are invisible on a dark canvas — depth comes from opacity. */
+    --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.4), 0 1px 3px 0 rgb(0 0 0 / 0.3);
+    --shadow-card-hover: 0 8px 24px -6px rgb(0 0 0 / 0.6), 0 2px 6px -2px rgb(0 0 0 / 0.4);
+    --shadow-popover: 0 12px 32px -8px rgb(0 0 0 / 0.7), 0 4px 8px -4px rgb(0 0 0 / 0.5);
+
+    --shimmer-highlight: 148 163 184;
+    --shimmer-opacity: 0.14;
+
+    color-scheme: dark;
+  }
+
+  * {
+    @apply border-ink-200;
+    /* Tailwind's base sets this to #fff; unset, every focus ring would sit in a white
+       halo in dark mode. Declared after the reset so it wins at equal specificity. */
+    --tw-ring-offset-color: rgb(var(--color-canvas));
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-canvas text-ink-900 antialiased;
+    font-feature-settings:
+      'cv02',
+      'cv03',
+      'cv04',
+      'cv11';
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Visible focus for keyboard users only — a permanent ring on mouse clicks is noise. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-canvas;
+  }
+
+  ::selection {
+    @apply bg-brand-100 text-brand-900;
+  }
+
+  /* Respect a user's reduced-motion preference across every animation in the app. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Skip link: the first tab stop on every page, hidden until focused. */
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100]
+           focus:rounded-lg focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-sm
+           focus:font-semibold focus:text-white;
+  }
+
+  .container-page {
+    @apply mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Skeleton shimmer. Preferred over a spinner: it preserves layout, so content
+     arriving does not shift the page. */
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg bg-ink-100;
+  }
+
+  .skeleton::after {
+    @apply absolute inset-0 -translate-x-full;
+    background-image: linear-gradient(
+      90deg,
+      rgb(var(--shimmer-highlight) / 0) 0,
+      rgb(var(--shimmer-highlight) / var(--shimmer-opacity)) 50%,
+      rgb(var(--shimmer-highlight) / 0) 100%
+    );
+    animation: shimmer 1.6s infinite;
+    content: '';
+  }
+
+  .card {
+    @apply rounded-2xl border border-ink-200 bg-surface shadow-card;
+  }
+
+  .input-base {
+    @apply block w-full rounded-xl border border-ink-300 bg-surface px-3.5 py-2.5 text-sm
+           text-ink-900 shadow-sm transition
+           placeholder:text-ink-400
+           focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20
+           disabled:cursor-not-allowed disabled:bg-ink-50 disabled:text-ink-500;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

@@ -1,0 +1,61 @@
+# Local infrastructure only — PostgreSQL and Redis. The apps run on the host via
+# `npm run dev` so hot reload stays fast.
+#
+#   docker compose up -d
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: shopwave-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: shopwave
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      # Prisma migrations fail confusingly if they start before Postgres is ready.
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d shopwave']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: shopwave-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Local mail sink: Nodemailer talks real SMTP to :1025 and nothing escapes to a
+  # real inbox. Read what was sent at http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: shopwave-mailpit
+    restart: unless-stopped
+    ports:
+      - '1025:1025' # SMTP
+      - '8025:8025' # web UI
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:
+  redis-data:

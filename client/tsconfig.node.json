@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    // `composite` requires emit, so declarations go to a scratch dir rather than noEmit.
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "outDir": "./node_modules/.tmp/tsconfig-node",
+    "composite": true,
+    "strict": true,
+    "types": ["node"]
+  },
+  "include": ["vite.config.ts"]
+}
