@@ -31,7 +31,9 @@ export function createApp(): Application {
       pinoHttp({
         logger,
         genReqId: (req) => (req as Request).id ?? '',
-        autoLogging: { ignore: (req) => req.url === '/health' || req.url === '/api/health' },
+        autoLogging: {
+          ignore: (req) => req.url === '/' || req.url === '/health' || req.url === '/api/health',
+        },
         customLogLevel: (_req, res, err) => {
           if (err || res.statusCode >= 500) return 'error';
           if (res.statusCode >= 400) return 'warn';
@@ -58,6 +60,10 @@ export function createApp(): Application {
   app.use(sanitiseRequest);
 
   app.use(env.API_PREFIX, globalLimiter);
+
+  // Hosting platforms probe the root (HEAD /) when an instance wakes; answer it rather
+  // than logging a 404 with a stack trace every time.
+  app.get('/', (_req: Request, res: Response) => res.status(204).end());
 
   app.get('/health', async (_req: Request, res: Response) => {
     const database = await pingDatabase();
