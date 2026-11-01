@@ -14,6 +14,8 @@ export const ErrorCode = {
 
   // auth
   UNAUTHORIZED: 'UNAUTHORIZED',
+  /** No access token and no refresh token either — nothing a refresh could recover. */
+  NO_SESSION: 'NO_SESSION',
   FORBIDDEN: 'FORBIDDEN',
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',

@@ -28,7 +28,15 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
   try {
     const token = extractToken(req);
     if (!token) {
-      throw ApiError.unauthorized('Authentication required');
+      // The refresh cookie is scoped to the auth routes, so only there can its absence be
+      // seen. Saying so lets the client skip a refresh that is bound to fail.
+      const cookies = req.cookies as Record<string, string | undefined> | undefined;
+      const noSession =
+        req.originalUrl.startsWith(AUTH.REFRESH_COOKIE_PATH) && !cookies?.[AUTH.REFRESH_COOKIE];
+      throw ApiError.unauthorized(
+        'Authentication required',
+        noSession ? ErrorCode.NO_SESSION : ErrorCode.UNAUTHORIZED,
+      );
     }
 
     const payload = verifyAccessToken(token);

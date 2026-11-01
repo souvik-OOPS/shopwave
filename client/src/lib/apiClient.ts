@@ -101,7 +101,13 @@ api.interceptors.response.use(
     const url = config?.url ?? '';
     const isAuthEndpoint = PUBLIC_AUTH_PATHS.some((path) => url.includes(path));
 
-    if (status === 401 && config && !config._retried && !isAuthEndpoint) {
+    // NO_SESSION: the server saw no refresh cookie either, so a refresh cannot succeed —
+    // the normal anonymous visit, which would otherwise cost a wasted round trip.
+    const canRefresh = data?.code !== 'NO_SESSION';
+    // Signed out elsewhere (another tab cleared the cookies): end the local session too.
+    if (status === 401 && !canRefresh) onAuthFailure?.();
+
+    if (status === 401 && config && !config._retried && !isAuthEndpoint && canRefresh) {
       config._retried = true;
 
       try {
