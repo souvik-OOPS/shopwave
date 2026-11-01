@@ -1,5 +1,6 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, isAnyOf, type PayloadAction } from '@reduxjs/toolkit';
 
+import { logout, sessionExpired } from '@/features/auth/authSlice';
 import type { Cart } from '@/types/api';
 
 /**
@@ -59,6 +60,10 @@ const cartSlice = createSlice({
     reset() {
       return initialState;
     },
+  },
+  extraReducers: (builder) => {
+    // The badge belongs to the session — it must not outlive it.
+    builder.addMatcher(isAnyOf(logout.pending, sessionExpired), () => initialState);
   },
 });
 

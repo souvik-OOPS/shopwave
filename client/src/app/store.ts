@@ -7,6 +7,7 @@ import themeReducer from '@/features/theme/themeSlice';
 import uiReducer from '@/features/ui/uiSlice';
 import wishlistReducer from '@/features/wishlist/wishlistSlice';
 import { setAuthFailureHandler } from '@/lib/apiClient';
+import { clearUserQueries } from '@/lib/queryClient';
 
 export const store = configureStore({
   reducer: {
@@ -26,6 +27,7 @@ export const store = configureStore({
  */
 setAuthFailureHandler(() => {
   store.dispatch(sessionExpired());
+  clearUserQueries();
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -29,7 +29,8 @@ export function CartDrawer() {
     navigate(path);
   }
 
-  const isEmpty = !cart || cart.items.length === 0;
+  // Signed out, there is no cart to total — whatever a cache still holds is someone's old one.
+  const isEmpty = !isAuthenticated || !cart || cart.items.length === 0;
 
   return (
     <Modal

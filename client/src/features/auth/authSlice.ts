@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/tool
 
 import { authApi } from '@/lib/api';
 import { ApiRequestError } from '@/lib/apiClient';
+import { clearUserQueries } from '@/lib/queryClient';
 import type { User } from '@/types/api';
 
 /**
@@ -66,6 +67,10 @@ export const register = createAsyncThunk<
 });
 
 export const logout = createAsyncThunk('auth/logout', async () => {
+  // `pending` has already signed the user out locally; drop their cached data in the
+  // same tick, before anything re-renders with it.
+  clearUserQueries();
+
   try {
     await authApi.logout();
   } catch {
@@ -131,7 +136,9 @@ const authSlice = createSlice({
         state.status = 'unauthenticated';
         state.error = action.payload ?? 'Registration failed';
       })
-      .addCase(logout.fulfilled, (state) => {
+      // Signed out the moment it is asked for, not when the server answers: a cold API can
+      // take seconds, and the account UI must not linger over a session the user ended.
+      .addCase(logout.pending, (state) => {
         state.user = null;
         state.status = 'unauthenticated';
         state.error = null;

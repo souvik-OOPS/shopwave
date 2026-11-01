@@ -81,3 +81,27 @@ export const queryKeys = {
     me: ['auth', 'me'] as const,
   },
 } as const;
+
+/**
+ * Every cache entry that belongs to whoever is signed in. A disabled query still serves
+ * its cached data, so on sign-out these must be dropped, not just switched off — or the
+ * cart drawer keeps showing prices and the next person on this browser sees the last
+ * one's orders and addresses.
+ */
+const USER_SCOPED_KEYS: readonly (readonly string[])[] = [
+  queryKeys.cart,
+  queryKeys.wishlist.all,
+  queryKeys.addresses,
+  queryKeys.orders.all,
+  queryKeys.reviews.all,
+  queryKeys.auth.me,
+  ['products', 'admin'],
+  ['coupons'],
+  ['admin'],
+];
+
+export function clearUserQueries() {
+  for (const queryKey of USER_SCOPED_KEYS) {
+    queryClient.removeQueries({ queryKey });
+  }
+}

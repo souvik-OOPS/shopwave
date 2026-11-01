@@ -1,4 +1,6 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, isAnyOf, type PayloadAction } from '@reduxjs/toolkit';
+
+import { logout, sessionExpired } from '@/features/auth/authSlice';
 
 /**
  * Just the set of saved product ids. Every product card needs to know "is this
@@ -33,6 +35,9 @@ const wishlistSlice = createSlice({
     reset() {
       return initialState;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addMatcher(isAnyOf(logout.pending, sessionExpired), () => initialState);
   },
 });
 
