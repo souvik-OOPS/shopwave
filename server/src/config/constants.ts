@@ -23,6 +23,13 @@ export const ORDERS = {
   /** Days after delivery during which a return may be requested. */
   RETURN_WINDOW_DAYS: 7,
   NUMBER_PREFIX: 'SW',
+  /**
+   * How long an unpaid online order holds its stock after the last payment attempt.
+   * Closing the Razorpay window sends no failure event, so without a deadline that
+   * stock would stay reserved forever.
+   */
+  UNPAID_HOLD_MINUTES: 30,
+  UNPAID_SWEEP_INTERVAL_MS: 5 * 60 * 1000,
 } as const;
 
 export const AUTH = {

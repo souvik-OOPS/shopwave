@@ -256,7 +256,10 @@ unset, so the rest of the app runs unchanged without Google credentials.
    another buyer won the race → the whole transaction aborts with `INSUFFICIENT_STOCK`.
 3. **Reservation model.** Creating an order moves `n` units from `quantity` → `reserved`. Payment
    success clears the reservation. Cancellation, failure or webhook-reported failure returns the
-   units to `quantity`. Stock therefore cannot be oversold by an abandoned checkout.
+   units to `quantity`. Closing the Razorpay window reports nothing, so a sweep (at boot and every
+   5 minutes) cancels Razorpay orders still unpaid 30 minutes after their last payment attempt and
+   releases their units; COD orders are never swept. Stock therefore can be neither oversold nor
+   held indefinitely by an abandoned checkout.
 4. **Order items are immutable snapshots** of name, slug, SKU, image, unit price, discount price,
    quantity, line total and variant attributes. Editing a product later never rewrites history.
 5. **Payment status comes only from Razorpay.** `/payments/verify` validates

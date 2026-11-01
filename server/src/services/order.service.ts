@@ -603,4 +603,37 @@ export const orderService = {
 
     await this.applyCancellation(order, reason);
   },
+
+  /**
+   * Cancels online orders nobody paid for within the hold window, measured from the
+   * latest payment attempt so a customer retrying from the order page is not cut off.
+   * COD orders are unpaid until delivery by design and are never touched.
+   *
+   * Safe to run on several instances at once: `applyCancellation` locks the order row
+   * and skips anything already cancelled, and a capture that lands afterwards is
+   * recorded and flagged for refund rather than confirmed.
+   */
+  async expireUnpaidOrders(): Promise<number> {
+    const cutoff = new Date(Date.now() - ORDERS.UNPAID_HOLD_MINUTES * 60 * 1000);
+    const stale = await prisma.order.findMany({
+      where: {
+        status: 'PENDING',
+        paymentMethod: 'RAZORPAY',
+        paymentStatus: { not: 'PAID' },
+        createdAt: { lt: cutoff },
+        payments: { none: { createdAt: { gte: cutoff } } },
+      },
+      select: { id: true },
+      orderBy: { createdAt: 'asc' },
+      take: 100,
+    });
+
+    for (const { id } of stale) {
+      await this.releaseFailedOrder(
+        id,
+        `Payment not completed within ${ORDERS.UNPAID_HOLD_MINUTES} minutes`,
+      );
+    }
+    return stale.length;
+  },
 };

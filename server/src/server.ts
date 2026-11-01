@@ -1,13 +1,27 @@
 import type { Server } from 'node:http';
 
 import { createApp } from '@/app';
+import { ORDERS } from '@/config/constants';
 import { env } from '@/config/env';
 import { logger } from '@/lib/logger';
 import { closeMailTransport, verifyMailTransport } from '@/lib/mailer';
 import { connectDatabase, disconnectDatabase } from '@/lib/prisma';
 import { disconnectRedis } from '@/lib/redis';
+import { orderService } from '@/services/order.service';
 
 let server: Server | undefined;
+let unpaidSweep: NodeJS.Timeout | undefined;
+
+async function expireUnpaidOrders(): Promise<void> {
+  try {
+    const expired = await orderService.expireUnpaidOrders();
+    if (expired > 0) {
+      logger.info({ count: expired }, 'Expired unpaid orders and released their stock');
+    }
+  } catch (error) {
+    logger.error({ err: error }, 'Unpaid order sweep failed');
+  }
+}
 
 async function shutdown(signal: string, exitCode = 0): Promise<void> {
   logger.info({ signal }, 'Shutting down');
@@ -19,6 +33,8 @@ async function shutdown(signal: string, exitCode = 0): Promise<void> {
   forceExit.unref();
 
   try {
+    clearInterval(unpaidSweep);
+
     // Stop accepting new connections first, then let in-flight requests finish.
     if (server) {
       await new Promise<void>((resolve, reject) => {
@@ -50,6 +66,12 @@ async function bootstrap(): Promise<void> {
       `ShopWave API listening on http://localhost:${env.PORT}${env.API_PREFIX}`,
     );
   });
+
+  // Runs at boot too: a free instance sleeps when idle, so the timer alone could leave
+  // stock held for as long as the instance was asleep.
+  void expireUnpaidOrders();
+  unpaidSweep = setInterval(() => void expireUnpaidOrders(), ORDERS.UNPAID_SWEEP_INTERVAL_MS);
+  unpaidSweep.unref();
 
   server.on('error', (error: NodeJS.ErrnoException) => {
     if (error.code === 'EADDRINUSE') {
