@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, CreditCard, MapPin, Package, ShieldCheck } from 'lucide-react';
 
+import { useAppDispatch, useAppSelector } from '@/app/store';
+import { setCouponCode } from '@/features/cart/cartSlice';
 import { Button } from '@/components/ui/Button';
 import { EmptyState, Spinner } from '@/components/ui/Feedback';
 import { Image } from '@/components/ui/Image';
@@ -26,11 +28,11 @@ const STEPS: Array<{ id: Step; label: string; icon: typeof MapPin }> = [
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const dispatch = useAppDispatch();
   const toast = useToast();
   const client = useQueryClient();
 
-  const couponCode = (location.state as { couponCode?: string | null } | null)?.couponCode ?? null;
+  const couponCode = useAppSelector((state) => state.cart.couponCode);
 
   // Same coupon-priced cart the cart screen showed. Without the code the summary here
   // would quote undiscounted totals and then charge the discounted ones.
@@ -124,13 +126,15 @@ export default function CheckoutPage() {
     onMutate: () => setProcessing(true),
 
     onSuccess: ({ order, paid }) => {
+      // The order now owns the coupon; the next cart starts without one.
+      dispatch(setCouponCode(null));
       void client.invalidateQueries({ queryKey: queryKeys.cart });
       void client.invalidateQueries({ queryKey: queryKeys.orders.all });
 
       if (paid) {
         toast.success('Payment successful', `Order ${order.orderNumber} is confirmed.`);
       } else {
-        toast.info('Order placed', 'Complete the payment from your orders page to confirm it.');
+        toast.info('Order placed', 'Complete the payment within 30 minutes to confirm it.');
       }
       navigate(`/orders/${order.id}`, { replace: true });
     },

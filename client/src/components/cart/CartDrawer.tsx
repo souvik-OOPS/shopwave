@@ -16,7 +16,9 @@ export function CartDrawer() {
   const open = useAppSelector((state) => state.ui.cartDrawerOpen);
   const isAuthenticated = useAppSelector((state) => state.auth.status === 'authenticated');
 
-  const { data: cart, isLoading } = useCart();
+  // Priced with the applied coupon so the drawer quotes what checkout will charge.
+  const couponCode = useAppSelector((state) => state.cart.couponCode);
+  const { data: cart, isLoading } = useCart(couponCode);
   const updateItem = useUpdateCartItem();
   const removeItem = useRemoveCartItem();
 
@@ -53,6 +55,12 @@ export function CartDrawer() {
                 <dt className="text-ink-600">Subtotal</dt>
                 <dd className="font-medium text-ink-900">{formatCurrency(cart.summary.subtotal)}</dd>
               </div>
+              {cart.summary.discountAmount > 0 && (
+                <div className="flex justify-between text-success-700">
+                  <dt>Coupon {cart.appliedCoupon?.code}</dt>
+                  <dd className="font-medium">−{formatCurrency(cart.summary.discountAmount)}</dd>
+                </div>
+              )}
               <div className="flex justify-between">
                 <dt className="text-ink-600">Delivery</dt>
                 <dd className="font-medium text-ink-900">

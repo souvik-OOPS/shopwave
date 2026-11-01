@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AlertTriangle, ArrowRight, Minus, Plus, ShoppingBag, Tag, Trash2 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
+import { useAppDispatch, useAppSelector } from '@/app/store';
+import { setCouponCode as setCartCoupon } from '@/features/cart/cartSlice';
 import { Button } from '@/components/ui/Button';
 import { EmptyState, Spinner } from '@/components/ui/Feedback';
 import { Image } from '@/components/ui/Image';
@@ -17,8 +19,10 @@ export default function CartPage() {
   const navigate = useNavigate();
   const toast = useToast();
 
+  const dispatch = useAppDispatch();
   const [couponCode, setCouponCode] = useState('');
-  const [activeCoupon, setActiveCoupon] = useState<string | null>(null);
+  const activeCoupon = useAppSelector((state) => state.cart.couponCode);
+  const setActiveCoupon = (code: string | null) => dispatch(setCartCoupon(code));
   const [confirmClear, setConfirmClear] = useState(false);
 
   // Priced by the server with the coupon in hand, so the discount, the free-shipping
@@ -267,7 +271,7 @@ export default function CartPage() {
               size="lg"
               className="mt-5"
               disabled={cart.items.some((item) => !item.isAvailable)}
-              onClick={() => navigate('/checkout', { state: { couponCode: activeCoupon } })}
+              onClick={() => navigate('/checkout')}
               rightIcon={<ArrowRight className="h-4 w-4" aria-hidden="true" />}
             >
               Proceed to checkout

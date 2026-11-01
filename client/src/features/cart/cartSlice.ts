@@ -18,6 +18,12 @@ interface CartState {
   /** Set while a mutation is in flight so the badge can show a subtle pulse. */
   pending: boolean;
   lastSyncedAt: number | null;
+  /**
+   * The coupon applied on the cart page. Held here rather than in the page so it
+   * survives leaving the cart and reaches checkout from the drawer as well. Only a
+   * preview — checkout revalidates it.
+   */
+  couponCode: string | null;
 }
 
 const initialState: CartState = {
@@ -26,6 +32,7 @@ const initialState: CartState = {
   subtotal: 0,
   pending: false,
   lastSyncedAt: null,
+  couponCode: null,
 };
 
 const cartSlice = createSlice({
@@ -57,6 +64,9 @@ const cartSlice = createSlice({
     setPending(state, action: PayloadAction<boolean>) {
       state.pending = action.payload;
     },
+    setCouponCode(state, action: PayloadAction<string | null>) {
+      state.couponCode = action.payload;
+    },
     reset() {
       return initialState;
     },
@@ -67,7 +77,13 @@ const cartSlice = createSlice({
   },
 });
 
-export const { syncFromServer, optimisticAdd, rollbackOptimistic, setPending, reset: resetCart } =
-  cartSlice.actions;
+export const {
+  syncFromServer,
+  optimisticAdd,
+  rollbackOptimistic,
+  setPending,
+  setCouponCode,
+  reset: resetCart,
+} = cartSlice.actions;
 
 export default cartSlice.reducer;

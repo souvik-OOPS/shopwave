@@ -23,10 +23,16 @@ const currencyFormatterWithPaise = new Intl.NumberFormat('en-IN', {
   maximumFractionDigits: 2,
 });
 
-/** ₹1,24,999 — Indian digit grouping, not the Western thousands grouping. */
+/**
+ * ₹1,24,999 — Indian digit grouping, not the Western thousands grouping. Paise show
+ * whenever there are any: computed amounts such as 18% GST must match what Razorpay
+ * charges to the paisa, not round to a rupee the customer is then not charged.
+ */
 export function formatCurrency(amount: number, options: { showPaise?: boolean } = {}): string {
-  const formatter = options.showPaise ? currencyFormatterWithPaise : currencyFormatter;
-  return formatter.format(Number.isFinite(amount) ? amount : 0);
+  const value = Number.isFinite(amount) ? amount : 0;
+  const hasPaise = Math.round(value * 100) % 100 !== 0;
+  const formatter = options.showPaise || hasPaise ? currencyFormatterWithPaise : currencyFormatter;
+  return formatter.format(value);
 }
 
 export function formatNumber(value: number): string {

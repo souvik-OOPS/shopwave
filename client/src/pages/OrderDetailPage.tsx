@@ -157,7 +157,8 @@ export default function OrderDetailPage() {
             <div className="text-sm">
               <p className="font-semibold text-warning-800">Payment pending</p>
               <p className="mt-0.5 text-warning-700">
-                Stock is reserved for this order. Complete payment to confirm it.
+                Stock is held for 30 minutes after your last payment attempt. Complete payment
+                to confirm the order, or it is cancelled and the items are released.
               </p>
             </div>
           </div>
