@@ -25,14 +25,31 @@ const initialState: AuthState = {
   error: null,
 };
 
+/**
+ * A free-tier API sleeps when idle and can take a minute to wake. Until it answers, the
+ * session is unknown — not signed out — so transient failures are retried for this long.
+ */
+const BOOTSTRAP_BUDGET_MS = 90_000;
+const BOOTSTRAP_RETRY_DELAY_MS = 3_000;
+
 /** Runs once on mount: asks the server who the cookie belongs to. */
 export const bootstrapSession = createAsyncThunk<User | null>('auth/bootstrap', async () => {
-  try {
-    const { user } = await authApi.me();
-    return user;
-  } catch {
-    // A 401 here is the normal anonymous case, not an error worth surfacing.
-    return null;
+  const deadline = Date.now() + BOOTSTRAP_BUDGET_MS;
+
+  for (;;) {
+    try {
+      const { user } = await authApi.me();
+      return user;
+    } catch (error) {
+      // A 401 here is the normal anonymous case, not an error worth surfacing. A timeout
+      // or 5xx is the API still waking up; answering "signed out" to that would drop a
+      // perfectly valid session.
+      const transient =
+        error instanceof ApiRequestError && (error.status === 0 || error.status >= 500);
+      if (!transient || Date.now() + BOOTSTRAP_RETRY_DELAY_MS > deadline) return null;
+
+      await new Promise((resolve) => setTimeout(resolve, BOOTSTRAP_RETRY_DELAY_MS));
+    }
   }
 });
 
