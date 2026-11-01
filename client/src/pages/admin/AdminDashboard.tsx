@@ -144,7 +144,7 @@ export default function AdminDashboard() {
         <StatCard
           label="Today's revenue"
           value={formatCurrency(summary.revenue.today)}
-          sublabel={`${summary.orders.today} orders today`}
+          sublabel={`${summary.orders.today} ${summary.orders.today === 1 ? 'order' : 'orders'} today`}
           icon={ArrowUpRight}
           tone="brand"
         />

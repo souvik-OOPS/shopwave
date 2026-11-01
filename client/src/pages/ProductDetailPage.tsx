@@ -229,7 +229,7 @@ export default function ProductDetailPage() {
                 </>
               )}
             </div>
-            <p className="mt-1 text-xs text-ink-500">Inclusive of all taxes</p>
+            <p className="mt-1 text-xs text-ink-500">GST added at checkout</p>
 
             {product.shortDescription && (
               <p className="mt-5 text-sm leading-relaxed text-ink-600">{product.shortDescription}</p>

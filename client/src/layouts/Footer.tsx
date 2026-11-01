@@ -89,7 +89,7 @@ export function Footer() {
           <p className="text-sm text-ink-500">
             © {new Date().getFullYear()} ShopWave. A portfolio commerce platform.
           </p>
-          <p className="text-sm text-ink-500">Prices include GST · Shipping across India</p>
+          <p className="text-sm text-ink-500">GST added at checkout · Shipping across India</p>
         </div>
       </div>
     </footer>

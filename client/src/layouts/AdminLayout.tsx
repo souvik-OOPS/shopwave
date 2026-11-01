@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
   Boxes,
   ChevronLeft,
   LayoutDashboard,
+  LogOut,
   Menu,
   MessageSquare,
   Package,
@@ -15,7 +16,8 @@ import {
   X,
 } from 'lucide-react';
 
-import { useAppSelector } from '@/app/store';
+import { useAppDispatch, useAppSelector } from '@/app/store';
+import { logout } from '@/features/auth/authSlice';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { cn, initials } from '@/lib/utils';
 
@@ -47,6 +49,8 @@ const NAV_SECTIONS = [
 ];
 
 export function AdminLayout() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const user = useAppSelector((state) => state.auth.user);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -148,6 +152,18 @@ export function AdminLayout() {
               <ChevronLeft className="h-4 w-4" aria-hidden="true" />
               Back to store
             </Link>
+
+            <button
+              type="button"
+              onClick={() => {
+                void dispatch(logout());
+                navigate('/login');
+              }}
+              className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-danger-600 hover:bg-danger-50"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              Sign out
+            </button>
           </div>
         </aside>
 

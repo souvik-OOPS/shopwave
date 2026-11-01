@@ -51,8 +51,9 @@ export function Image({
           alt={alt}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
-          // `fetchpriority` lets the browser front-load the hero image.
-          fetchPriority={priority ? 'high' : 'auto'}
+          // `fetchpriority` lets the browser front-load the hero image. Spread in lowercase:
+          // React 18 does not know the camelCase prop and warns on every render.
+          {...{ fetchpriority: priority ? 'high' : 'auto' }}
           onLoad={() => setStatus('loaded')}
           onError={() => setStatus('error')}
           className={cn(

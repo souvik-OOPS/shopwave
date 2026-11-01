@@ -70,7 +70,9 @@ export function Toaster() {
     <div
       aria-live="polite"
       aria-atomic="false"
-      className="pointer-events-none fixed inset-x-0 top-4 z-[60] mx-auto flex w-full max-w-sm flex-col gap-2 px-4 sm:left-auto sm:right-4 sm:mx-0 sm:px-0"
+      // Below the header's top bar, so a toast never covers the cart and account
+      // buttons — the very thing a shopper reaches for right after "Added to cart".
+      className="pointer-events-none fixed inset-x-0 top-20 z-[60] mx-auto flex w-full max-w-sm flex-col gap-2 px-4 sm:left-auto sm:right-4 sm:mx-0 sm:px-0"
     >
       {toasts.map((toast) => (
         <ToastCard key={toast.id} toast={toast} />
