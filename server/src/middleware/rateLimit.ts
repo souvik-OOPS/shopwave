@@ -1,23 +1,94 @@
-import rateLimit, { type Options, type RateLimitRequestHandler } from 'express-rate-limit';
+import rateLimit, {
+  MemoryStore,
+  type ClientRateLimitInfo,
+  type Options,
+  type RateLimitRequestHandler,
+  type Store,
+} from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import type { Request, Response } from 'express';
 
 import { env, isTest } from '@/config/env';
+import { logger } from '@/lib/logger';
 import { isCacheAvailable, redis } from '@/lib/redis';
 import { ErrorCode } from '@/utils/ApiError';
 
 /**
- * A shared Redis store makes limits hold across replicas; without Redis each instance
- * keeps its own in-memory counter, which is still better than nothing for single-node.
+ * Counts in Redis while it is reachable, so limits hold across instances and restarts,
+ * and in memory while it is not — Redis stays an optimisation, never a dependency.
+ *
+ * The Redis store is built on first use, not at import. The limiters are created while
+ * Redis is still connecting, and RedisStore loads its Lua scripts in its constructor:
+ * built eagerly it either rejects unhandled (which shuts the server down) or, behind an
+ * "is Redis up yet?" guard, is never built at all and every limit stays per-instance.
  */
-function createStore(prefix: string): Options['store'] | undefined {
-  const client = redis;
-  if (!isCacheAvailable() || !client) return undefined;
+class FallbackStore implements Store {
+  readonly prefix: string;
+  private readonly memory = new MemoryStore();
+  private redisStore: RedisStore | null = null;
+  private options: Options | null = null;
 
-  return new RedisStore({
-    prefix: `rl:${prefix}:`,
-    sendCommand: (...args: string[]) => client.call(...(args as [string, ...string[]])) as Promise<never>,
-  });
+  constructor(private readonly name: string) {
+    // Distinct per limiter, so express-rate-limit's double-count check tells them apart.
+    this.prefix = `rl:${name}:`;
+  }
+
+  init(options: Options): void {
+    this.options = options;
+    this.memory.init(options);
+  }
+
+  private current(): Store {
+    const client = redis;
+    if (!client || !isCacheAvailable() || !this.options) return this.memory;
+
+    if (!this.redisStore) {
+      const store = new RedisStore({
+        prefix: this.prefix,
+        sendCommand: (...args: string[]) =>
+          client.call(...(args as [string, ...string[]])) as Promise<never>,
+      });
+      // Awaited only on first use; if Redis drops before then, that must not surface
+      // as an unhandled rejection.
+      store.incrementScriptSha.catch(() => undefined);
+      store.getScriptSha.catch(() => undefined);
+      store.init(this.options);
+      this.redisStore = store;
+      logger.info({ limiter: this.name }, 'Rate limits stored in Redis');
+    }
+    return this.redisStore;
+  }
+
+  private async run<T>(operation: (store: Store) => Promise<T>): Promise<T> {
+    const store = this.current();
+    if (store === this.memory) return operation(store);
+
+    try {
+      return await operation(store);
+    } catch (error) {
+      logger.warn(
+        { err: error, limiter: this.name },
+        'Redis rate-limit store failed — counting in memory',
+      );
+      return operation(this.memory);
+    }
+  }
+
+  increment(key: string): Promise<ClientRateLimitInfo> {
+    return this.run(async (store) => store.increment(key));
+  }
+
+  decrement(key: string): Promise<void> {
+    return this.run(async (store) => {
+      await store.decrement(key);
+    });
+  }
+
+  resetKey(key: string): Promise<void> {
+    return this.run(async (store) => {
+      await store.resetKey(key);
+    });
+  }
 }
 
 function build(options: {
@@ -33,7 +104,7 @@ function build(options: {
     max: options.max,
     standardHeaders: true,
     legacyHeaders: false,
-    store: createStore(options.prefix),
+    store: new FallbackStore(options.prefix),
     skipSuccessfulRequests: options.skipSuccessfulRequests ?? false,
     // Disabled in tests so suites don't trip limits and become order-dependent.
     skip: () => isTest,

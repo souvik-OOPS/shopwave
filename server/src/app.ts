@@ -3,6 +3,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import pinoHttp from 'pino-http';
 
+import { TRUSTED_PROXIES } from '@/config/constants';
 import { env, isTest } from '@/config/env';
 import { logger } from '@/lib/logger';
 import { pingDatabase } from '@/lib/prisma';
@@ -17,8 +18,8 @@ export function createApp(): Application {
   const app = express();
 
   // Behind a load balancer, req.ip must come from X-Forwarded-For or every client
-  // shares one rate-limit bucket. `1` = trust exactly one proxy hop.
-  app.set('trust proxy', 1);
+  // shares one rate-limit bucket. See TRUSTED_PROXIES for why it is ranges, not a count.
+  app.set('trust proxy', TRUSTED_PROXIES);
   app.disable('x-powered-by');
 
   app.use(requestId);
